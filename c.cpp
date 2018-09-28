@@ -31,24 +31,26 @@ std::string string_only_alnum(const std::string& s) {
   return s | view::filter(isalnum);
 }
 
-void popular_words() {
-  const auto words = istream_range<std::string>(std::cin)
+std::vector<std::pair<size_t, std::string>> popular_words(size_t count) {
+  auto words = istream_range<std::string>(std::cin)
       | view::transform(string_to_lower)
       | view::transform(string_only_alnum)
       | view::remove_if(&std::string::empty)
       | to_vector | action::sort;
 
-  const auto results = words
+  auto results = words
       | view::group_by(std::equal_to<>())
       | view::transform([](const auto& group) {
-          const auto begin = std::begin(group);
-          const auto end = std::end(group);
+          auto begin = std::begin(group);
+          auto end = std::end(group);
           // Not to use std::distance
-          const size_t size = distance(begin, end);
-          const auto word = *begin;
+          size_t size = distance(begin, end);
+          auto word = *begin;
           return std::make_pair(size, word);
         })
       | to_vector | action::sort;
+  std::reverse(results.begin(), results.end());
+  return results | view::take(count) | to_vector;
 }
 
 template <typename C, typename P>
@@ -63,5 +65,7 @@ auto filter_by_index(C col, P index_filter_pred) {
 }
 
 int main(int argc, char const *argv[]) {
-
+  for (const auto&[word, counter] : popular_words(2)) {
+    std::cout << word << " " << counter << '\n';
+  }
 }
